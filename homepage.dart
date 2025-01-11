@@ -13,28 +13,14 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Index of the currently selected page
-  int _currentIndex = 0;
-
-  // List of pages for navigation
-  final List<Widget> _pages = [
-    ProfilePage(
-      userProfile: {
-        'name': 'Jithu',
-        'email': 'jithu@gmail.com',
-        'phone': '9982098298',
-      },
-    ),
-    NotificationsPage(),
-    NearbyHospitalsWidget(latitude: 37.7749, longitude: -122.4194),
-  ];
-
   Position? _currentPosition;
+
   @override
   void initState() {
     super.initState();
     _getCurrentLocation();
   }
+
   // Function to get the current location
   Future<void> _getCurrentLocation() async {
     bool serviceEnabled;
@@ -69,7 +55,6 @@ class _HomePageState extends State<HomePage> {
   // Variable to store the API response
   String classificationResult = "No result yet";
 
-  // Function to call the Flask API
   Future<void> sendSensorData(double x, double y, double z) async {
     const apiUrl = 'http://127.0.0.1:5000/classify'; // Update with your API URL
 
@@ -104,10 +89,11 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _onTabTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
+  void _navigateToPage(Widget page) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => page),
+    );
   }
 
   @override
@@ -120,7 +106,14 @@ class _HomePageState extends State<HomePage> {
       body: SafeArea(
         child: Column(
           children: [
-            Expanded(child: _pages[_currentIndex]), // Display the selected page
+            Expanded(
+              child: Center(
+                child: Text(
+                  "Welcome to FreeFall",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -144,8 +137,26 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: _onTabTapped,
+        onTap: (index) {
+          if (index == 0) {
+            _navigateToPage(ProfilePage(
+              userProfile: {
+                'name': 'Jithu',
+                'email': 'jithu@gmail.com',
+                'phone': '9982098298',
+              },
+            ));
+          } else if (index == 1) {
+            _navigateToPage(NotificationsPage());
+          } else if (index == 2) {
+            if (_currentPosition != null) {
+              _navigateToPage(NearbyHospitalsWidget(
+                latitude: _currentPosition!.latitude,
+                longitude: _currentPosition!.longitude,
+              ));
+            }
+          }
+        },
         items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.person),

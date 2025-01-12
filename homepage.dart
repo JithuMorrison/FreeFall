@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:freefall/Contacts.dart';
+import 'package:freefall/dashboard.dart';
 import 'package:freefall/nearbyhospitals.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-
 import 'package:freefall/profile.dart';
-import 'main.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -14,6 +12,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   Position? _currentPosition;
+  int _currentIndex = 0;  // Track the current index
 
   @override
   void initState() {
@@ -67,16 +66,16 @@ class _HomePageState extends State<HomePage> {
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);*/
-        setState(() {
-          //classificationResult = responseData['status'];
-          classificationResult = 'fall';
-          if (classificationResult == 'fall' && _currentPosition != null) {
-            // Send the current location with the fall state
-            final latitude = _currentPosition!.latitude;
-            final longitude = _currentPosition!.longitude;
-            Navigator.push(context, MaterialPageRoute(builder: (context)=>NearbyHospitalsWidget(latitude: latitude, longitude: longitude)));
-          }
-          });
+      setState(() {
+        //classificationResult = responseData['status'];
+        classificationResult = 'fall';
+        if (classificationResult == 'fall' && _currentPosition != null) {
+          // Send the current location with the fall state
+          final latitude = _currentPosition!.latitude;
+          final longitude = _currentPosition!.longitude;
+          Navigator.push(context, MaterialPageRoute(builder: (context)=>NearbyHospitalsWidget(latitude: latitude, longitude: longitude)));
+        }
+      });
       /*} else {
         setState(() {
           classificationResult = "Error: ${response.body}";
@@ -89,11 +88,31 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _navigateToPage(Widget page) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => page),
-    );
+  Widget _getPage(int index) {
+    switch (index) {
+      case 0:
+        return Dashboard(currpos: _currentPosition);
+      case 1:
+        return ProfilePage(
+          userProfile: {
+            'name': 'Jithu',
+            'email': 'jithu@gmail.com',
+            'phone': '9982098298',
+          },
+        );
+      case 2:
+        return InactivityTrackerPage();
+      case 3:
+        if (_currentPosition != null) {
+          return NearbyHospitalsWidget(
+            latitude: _currentPosition!.latitude,
+            longitude: _currentPosition!.longitude,
+          );
+        }
+        return Center(child: Text("Location not available"));
+      default:
+        return Center(child: Text("Page not found"));
+    }
   }
 
   @override
@@ -103,74 +122,67 @@ class _HomePageState extends State<HomePage> {
         title: Text('FreeFall'),
         backgroundColor: Colors.redAccent,
       ),
-      body: SafeArea(
-        child: Column(
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
           children: [
-            Expanded(
-              child: Center(
-                child: Text(
-                  "Welcome to FreeFall",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.redAccent,
+              ),
+              child: Text(
+                'Menu',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      // Example sensor data
-                      sendSensorData(3.0, 1.0, 0.5); // Update with actual values
-                    },
-                    child: Text("Send Data"),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    "Classification Result: $classificationResult",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
+            ListTile(
+              leading: Icon(Icons.dashboard),
+              title: Text('Dashboard'),
+              onTap: () {
+                setState(() {
+                  _currentIndex = 0;  // Change the page to Profile
+                });
+                Navigator.pop(context);  // Close the drawer
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text('Profile'),
+              onTap: () {
+                setState(() {
+                  _currentIndex = 1;  // Change the page to Profile
+                });
+                Navigator.pop(context);  // Close the drawer
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.notifications),
+              title: Text('Notifications'),
+              onTap: () {
+                setState(() {
+                  _currentIndex = 2;  // Change the page to Notifications
+                });
+                Navigator.pop(context);  // Close the drawer
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.track_changes),
+              title: Text('Tracker'),
+              onTap: () {
+                setState(() {
+                  _currentIndex = 3;  // Change the page to Tracker
+                });
+                Navigator.pop(context);  // Close the drawer
+              },
             ),
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        onTap: (index) {
-          if (index == 0) {
-            _navigateToPage(ProfilePage(
-              userProfile: {
-                'name': 'Jithu',
-                'email': 'jithu@gmail.com',
-                'phone': '9982098298',
-              },
-            ));
-          } else if (index == 1) {
-            _navigateToPage(NotificationsPage());
-          } else if (index == 2) {
-            if (_currentPosition != null) {
-              _navigateToPage(NearbyHospitalsWidget(
-                latitude: _currentPosition!.latitude,
-                longitude: _currentPosition!.longitude,
-              ));
-            }
-          }
-        },
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: 'Notifications',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.track_changes),
-            label: 'Tracker',
-          ),
-        ],
+      body: SafeArea(
+        child: _getPage(_currentIndex),  // Display the page based on current index
       ),
     );
   }

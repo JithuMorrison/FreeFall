@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:freefall/apikey.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:latlong2/latlong.dart'; // For LatLng
@@ -31,7 +32,7 @@ class _NearbyHospitalsWidgetState extends State<NearbyHospitalsWidget> {
 
   Future<void> fetchNearbyHospitals() async {
     final String apiUrl =
-        'https://api.mapbox.com/geocoding/v5/mapbox.places/hospital.json?proximity=${widget.longitude},${widget.latitude}&access_token=API_KEY';
+        'https://api.mapbox.com/geocoding/v5/mapbox.places/hospital.json?proximity=${widget.longitude},${widget.latitude}&access_token=${ApiKeys.mapboxapi}';
 
     try {
       final response = await http.get(Uri.parse(apiUrl));
@@ -92,10 +93,10 @@ class _NearbyHospitalsWidgetState extends State<NearbyHospitalsWidget> {
               children: [
                 TileLayer(
                   urlTemplate:
-                  "https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/256/{z}/{x}/{y}@2x?access_token=API_KEY",
+                  "https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/256/{z}/{x}/{y}@2x?access_token=${ApiKeys.mapboxapi}",
                   additionalOptions: {
                     "access_token":
-                    "API_KEY",
+                    ApiKeys.mapboxapi,
                   },
                 ),
                 MarkerLayer(

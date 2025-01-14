@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'common.dart';
+import 'dbhelper.dart';
 
 class InactivityTrackerPage extends StatefulWidget {
   @override
@@ -8,15 +9,18 @@ class InactivityTrackerPage extends StatefulWidget {
 }
 
 class _InactivityTrackerPageState extends State<InactivityTrackerPage> {
-
+  final dbHelper = DatabaseHelper();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _contactController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
 
-  void _addContact(String name, String contact, String email) {
+  void _addContact(String name, String contact, String email) async {
     setState(() {
       Common.contacts.add({'name': name, 'contact': contact, 'email': email});
     });
+    if(Common.username!=null){
+      await dbHelper.updateContacts(Common.username!, Common.contacts);
+    }
   }
 
   void _deleteContact(int index) {

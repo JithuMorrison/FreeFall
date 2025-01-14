@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:freefall/loginpage.dart';
 import 'package:workmanager/workmanager.dart';
+import 'dbhelper.dart';
 import 'homepage.dart';
 
 const String backgroundTaskKey = "checkValueTask";
@@ -35,9 +36,10 @@ void callbackDispatcher() {
 double _currentValue = 45.0; // Default starting value
 
 Future<void> checkValueAndNotify() async {
+  final String username = await fetchFirstUsername();
   // Check the current value
   if (_currentValue < 50.0) {
-    await sendNotification("Alert!", "Value has fallen below the threshold: $_currentValue");
+    await sendNotification("Alert!", "$username, value has fallen below the threshold: $_currentValue");
     await updateCondition(true); // Update condition for UI
   } else {
     await updateCondition(false); // Update condition for UI
@@ -45,6 +47,26 @@ Future<void> checkValueAndNotify() async {
   print(_currentValue);
   // Generate a new random value between 40 and 100
   _currentValue = _generateRandomValue(40, 100);
+}
+
+Future<String> fetchFirstUsername() async {
+  final dbHelper = DatabaseHelper(); // Assuming DatabaseHelper is your database manager class
+  final db = await dbHelper.database;
+
+  // Fetch the first row from the 'users' table
+  final List<Map<String, dynamic>> result = await db.query(
+    'users',
+    columns: ['username'],
+    limit: 1,
+  );
+
+  // If the table is empty, return a default value
+  if (result.isEmpty) {
+    return 'User';
+  }
+
+  // Return the username from the first row
+  return result.first['username'] as String;
 }
 
 // Function to get the current value

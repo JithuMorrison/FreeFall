@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:freefall/loginpage.dart';
 import 'package:workmanager/workmanager.dart';
+import 'common.dart';
 import 'dbhelper.dart';
 import 'homepage.dart';
 
@@ -16,7 +17,7 @@ void main() async {
 
   //await Workmanager().cancelAll();
   // Start periodic background task
-  //\*
+  ///*
   Workmanager().registerPeriodicTask(
     "1", // Unique task identifier
     backgroundTaskKey,
@@ -36,11 +37,13 @@ void callbackDispatcher() {
 }
 
 Future<void> checkValueAndNotify() async {
-  final String username = await fetchFirstUsername();
+  final dbHelper = DatabaseHelper();
+  final username = await fetchFirstUsername();
+  final contacts = await dbHelper.getContacts(Common.username!);
   final currentValue = _generateRandomValue(40, 100);
   // Check the current value
   if (currentValue < 50.0) {
-    await sendNotification("Alert!", "$username, value has fallen below the threshold: $currentValue");
+    await sendNotification("Alert!", "${username}, value has fallen below the threshold: $currentValue and contacts: ${contacts}");
     await updateCondition(true); // Update condition for UI
   } else {
     await updateCondition(false); // Update condition for UI

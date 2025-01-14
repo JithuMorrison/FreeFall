@@ -16,11 +16,13 @@ void main() async {
 
   //await Workmanager().cancelAll();
   // Start periodic background task
+  //\*
   Workmanager().registerPeriodicTask(
     "1", // Unique task identifier
     backgroundTaskKey,
     frequency: const Duration(minutes: 15), // Executes every 15 hour
   );
+  //*/
   runApp(const MyApp());
 }
 
@@ -33,20 +35,17 @@ void callbackDispatcher() {
   });
 }
 
-double _currentValue = 45.0; // Default starting value
-
 Future<void> checkValueAndNotify() async {
   final String username = await fetchFirstUsername();
+  final currentValue = _generateRandomValue(40, 100);
   // Check the current value
-  if (_currentValue < 50.0) {
-    await sendNotification("Alert!", "$username, value has fallen below the threshold: $_currentValue");
+  if (currentValue < 50.0) {
+    await sendNotification("Alert!", "$username, value has fallen below the threshold: $currentValue");
     await updateCondition(true); // Update condition for UI
   } else {
     await updateCondition(false); // Update condition for UI
   }
-  print(_currentValue);
-  // Generate a new random value between 40 and 100
-  _currentValue = _generateRandomValue(40, 100);
+  print(currentValue);
 }
 
 Future<String> fetchFirstUsername() async {
@@ -67,11 +66,6 @@ Future<String> fetchFirstUsername() async {
 
   // Return the username from the first row
   return result.first['username'] as String;
-}
-
-// Function to get the current value
-double getCurrentValue() {
-  return _currentValue;
 }
 
 double _generateRandomValue(int min, int max) {

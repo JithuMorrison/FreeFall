@@ -1,3 +1,4 @@
+import 'dart:convert'; // For JSON encoding and decoding
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -18,6 +19,7 @@ class DatabaseHelper {
   Future<Database> _initDatabase() async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'user_database.db');
+    //await deleteDatabase(path);
 
     return await openDatabase(
       path,
@@ -26,7 +28,8 @@ class DatabaseHelper {
         db.execute('''
           CREATE TABLE users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE
+            username TEXT UNIQUE,
+            contacts TEXT
           )
         ''');
       },
@@ -34,9 +37,13 @@ class DatabaseHelper {
   }
 
   // Add a user
-  Future<int> addUser(String username) async {
+  Future<int> addUser(String username, List<Map<String, String>> contacts) async {
     final db = await database;
-    return await db.insert('users', {'username': username});
+    final contactsJson = jsonEncode(contacts); // Convert contacts to JSON string
+    return await db.insert('users', {
+      'username': username,
+      'contacts': contactsJson,
+    });
   }
 
   // Check if the username exists
@@ -49,5 +56,37 @@ class DatabaseHelper {
     );
 
     return result.isNotEmpty;
+  }
+
+  // Get contacts for a user
+  Future<List<Map<String, String>>> getContacts(String username) async {
+    final db = await database;
+    final result = await db.query(
+      'users',
+      columns: ['contacts'],
+      where: 'username = ?',
+      whereArgs: [username],
+    );
+
+    if (result.isNotEmpty) {
+      final contactsJson = result.first['contacts'] as String;
+      final decodedContacts = jsonDecode(contactsJson) as List;
+      return decodedContacts.map((contact) => Map<String, String>.from(contact)).toList();
+    }
+
+    return [];
+  }
+
+  // Update contacts for a user
+  Future<int> updateContacts(String username, List<Map<String, String>> contacts) async {
+    final db = await database;
+    final contactsJson = jsonEncode(contacts); // Convert contacts to JSON string
+    print(contactsJson);
+    return await db.update(
+      'users',
+      {'contacts': contactsJson},
+      where: 'username = ?',
+      whereArgs: [username],
+    );
   }
 }

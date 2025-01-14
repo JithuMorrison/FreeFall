@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
+import 'common.dart';
+
 class InactivityTrackerPage extends StatefulWidget {
   @override
   _InactivityTrackerPageState createState() => _InactivityTrackerPageState();
 }
 
 class _InactivityTrackerPageState extends State<InactivityTrackerPage> {
-  List<Map<String, String>> contacts = [];
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _contactController = TextEditingController();
@@ -14,13 +15,13 @@ class _InactivityTrackerPageState extends State<InactivityTrackerPage> {
 
   void _addContact(String name, String contact, String email) {
     setState(() {
-      contacts.add({'name': name, 'contact': contact, 'email': email});
+      Common.contacts.add({'name': name, 'contact': contact, 'email': email});
     });
   }
 
   void _deleteContact(int index) {
     setState(() {
-      contacts.removeAt(index);
+      Common.contacts.removeAt(index);
     });
   }
 
@@ -92,9 +93,9 @@ class _InactivityTrackerPageState extends State<InactivityTrackerPage> {
           children: [
             Expanded(
               child: ListView.builder(
-                itemCount: contacts.length,
+                itemCount: Common.contacts.length,
                 itemBuilder: (context, index) {
-                  final contact = contacts[index];
+                  final contact = Common.contacts[index];
                   return Card(
                     elevation: 2,
                     child: ListTile(

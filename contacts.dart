@@ -23,10 +23,13 @@ class _InactivityTrackerPageState extends State<InactivityTrackerPage> {
     }
   }
 
-  void _deleteContact(int index) {
+  void _deleteContact(int index) async {
     setState(() {
       Common.contacts.removeAt(index);
     });
+    if(Common.username!=null){
+      await dbHelper.updateContacts(Common.username!, Common.contacts);
+    }
   }
 
   void _showAddContactDialog() {

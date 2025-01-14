@@ -4,24 +4,20 @@ import 'package:freefall/nearbyhospitals.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:freefall/profile.dart';
 
+import 'common.dart';
+
 class Dashboard extends StatefulWidget {
-  final Position? currpos;
-  const Dashboard({
-    Key? key,
-    required this.currpos
-});
+  const Dashboard({Key? key});
   @override
   _DashboardState createState() => _DashboardState();
 }
 
 class _DashboardState extends State<Dashboard> {
-  Position? _currentPosition;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _currentPosition = widget.currpos;
   }
 
   // Variable to store the API response
@@ -42,10 +38,10 @@ class _DashboardState extends State<Dashboard> {
       setState(() {
         //classificationResult = responseData['status'];
         classificationResult = 'fall';
-        if (classificationResult == 'fall' && _currentPosition != null) {
+        if (classificationResult == 'fall' && Common.currentPosition != null) {
           // Send the current location with the fall state
-          final latitude = _currentPosition!.latitude;
-          final longitude = _currentPosition!.longitude;
+          final latitude = Common.currentPosition!.latitude;
+          final longitude = Common.currentPosition!.longitude;
           Navigator.push(context, MaterialPageRoute(builder: (context)=>NearbyHospitalsWidget(latitude: latitude, longitude: longitude)));
         }
       });

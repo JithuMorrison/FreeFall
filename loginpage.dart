@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freefall/common.dart';
 import 'package:freefall/homepage.dart';
 import 'dbhelper.dart';
 
@@ -27,6 +28,8 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Welcome back, $username!')),
       );
+      Common.username = username;
+      Common.contacts = await _dbHelper.getContacts(username);
       Navigator.push(context, MaterialPageRoute(builder: (context)=>HomePage()));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -46,7 +49,7 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     try {
-      await _dbHelper.addUser(username);
+      await _dbHelper.addUser(username,[]);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('User registered successfully!')),
       );

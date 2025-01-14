@@ -5,13 +5,15 @@ import 'package:freefall/nearbyhospitals.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:freefall/profile.dart';
 
+import 'common.dart';
+
 class HomePage extends StatefulWidget {
+  static bool hasFallen = false;
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  Position? _currentPosition;
   int _currentIndex = 0;  // Track the current index
 
   @override
@@ -47,7 +49,7 @@ class _HomePageState extends State<HomePage> {
         desiredAccuracy: LocationAccuracy.high);
 
     setState(() {
-      _currentPosition = position;
+      Common.currentPosition = position;
     });
   }
 
@@ -68,12 +70,17 @@ class _HomePageState extends State<HomePage> {
         final responseData = jsonDecode(response.body);*/
       setState(() {
         //classificationResult = responseData['status'];
-        classificationResult = 'fall';
-        if (classificationResult == 'fall' && _currentPosition != null) {
-          // Send the current location with the fall state
-          final latitude = _currentPosition!.latitude;
-          final longitude = _currentPosition!.longitude;
-          Navigator.push(context, MaterialPageRoute(builder: (context)=>NearbyHospitalsWidget(latitude: latitude, longitude: longitude)));
+        if(HomePage.hasFallen){
+          classificationResult = 'fall';
+          if (classificationResult == 'fall' && Common.currentPosition != null) {
+            // Send the current location with the fall state
+            final latitude = Common.currentPosition!.latitude;
+            final longitude = Common.currentPosition!.longitude;
+            Navigator.push(context, MaterialPageRoute(builder: (context)=>NearbyHospitalsWidget(latitude: latitude, longitude: longitude)));
+          }
+        }
+        else{
+          classificationResult = 'Stand';
         }
       });
       /*} else {
@@ -91,7 +98,7 @@ class _HomePageState extends State<HomePage> {
   Widget _getPage(int index) {
     switch (index) {
       case 0:
-        return Dashboard(currpos: _currentPosition);
+        return Dashboard();
       case 1:
         return ProfilePage(
           userProfile: {
@@ -103,10 +110,10 @@ class _HomePageState extends State<HomePage> {
       case 2:
         return InactivityTrackerPage();
       case 3:
-        if (_currentPosition != null) {
+        if (Common.currentPosition != null) {
           return NearbyHospitalsWidget(
-            latitude: _currentPosition!.latitude,
-            longitude: _currentPosition!.longitude,
+            latitude: Common.currentPosition!.latitude,
+            longitude: Common.currentPosition!.longitude,
           );
         }
         return Center(child: Text("Location not available"));

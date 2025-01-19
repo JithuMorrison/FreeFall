@@ -38,14 +38,14 @@ void callbackDispatcher() {
 
 Future<void> checkValueAndNotify() async {
   final dbHelper = DatabaseHelper();
-  final username = await fetchFirstUsername();
-  final contacts = await dbHelper.getContacts(Common.username!);
+  final username = Common.username ?? await fetchFirstUsername();
+  final contacts = await dbHelper.getContacts(username);
   final currentValue = _generateRandomValue(40, 100);
-  // Check the current value
   if (currentValue < 50.0) {
-    await sendNotification("Alert!", "${username}, value has fallen below the threshold: $currentValue and contacts: ${contacts}");
+    await sendNotification("Alert!", "$username, value has fallen below the threshold: $currentValue and contacts: ${contacts}");
     await updateCondition(true); // Update condition for UI
   } else {
+    await sendNotification("Alert!", "$username, no new falls");
     await updateCondition(false); // Update condition for UI
   }
   print(currentValue);

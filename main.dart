@@ -21,7 +21,7 @@ void main() async {
   Workmanager().registerPeriodicTask(
     "1", // Unique task identifier
     backgroundTaskKey,
-    frequency: const Duration(minutes: 15), // Executes every 15 hour
+    frequency: const Duration(hours: 15), // Executes every 15 hour
   );
   //*/
   runApp(const MyApp());
@@ -37,18 +37,8 @@ void callbackDispatcher() {
 }
 
 Future<void> checkValueAndNotify() async {
-  final dbHelper = DatabaseHelper();
   final username = Common.username ?? await fetchFirstUsername();
-  final contacts = await dbHelper.getContacts(username);
-  final currentValue = _generateRandomValue(40, 100);
-  if (currentValue < 50.0) {
-    await sendNotification("Alert!", "$username, value has fallen below the threshold: $currentValue and contacts: ${contacts}");
-    await updateCondition(true); // Update condition for UI
-  } else {
-    await sendNotification("Alert!", "$username, no new falls");
-    await updateCondition(false); // Update condition for UI
-  }
-  print(currentValue);
+  await sendNotification("Alert!", "Hello $username, Visit app again");
 }
 
 Future<String> fetchFirstUsername() async {
@@ -69,17 +59,6 @@ Future<String> fetchFirstUsername() async {
 
   // Return the username from the first row
   return result.first['username'] as String;
-}
-
-double _generateRandomValue(int min, int max) {
-  final random = Random();
-  return min + random.nextInt(max - min + 1).toDouble();
-}
-
-Future<void> updateCondition(bool hasFallen) async {
-  // Store the "fall" status in a persistent way (use shared_preferences or similar)
-  // For simplicity, using static variable (not persistent)
-  HomePage.hasFallen = hasFallen;
 }
 
 // Send a local notification

@@ -49,7 +49,7 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     try {
-      await _dbHelper.addUser(username,[]);
+      await _dbHelper.addUser(username, []);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('User registered successfully!')),
       );
@@ -63,24 +63,80 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Login')),
+      appBar: AppBar(
+        title: Text('Login'),
+        backgroundColor: Colors.redAccent, // Updated color for the app bar
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Title or logo section
+            Center(
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.account_circle,
+                    size: 100,
+                    color: Colors.redAccent,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'Welcome Back!',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.redAccent,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 32),
+            // Username text field
             TextField(
               controller: _usernameController,
-              decoration: InputDecoration(labelText: 'Username'),
+              decoration: InputDecoration(
+                labelText: 'Username',
+                prefixIcon: Icon(Icons.person),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              style: TextStyle(fontSize: 18),
             ),
             SizedBox(height: 16),
+            // Login button
             ElevatedButton(
               onPressed: _login,
-              child: Text('Login'),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: Colors.redAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              child: Text(
+                'Login',
+                style: TextStyle(fontSize: 18),
+              ),
             ),
+            SizedBox(height: 16),
+            // Register button
             ElevatedButton(
               onPressed: _register,
-              child: Text('Register'),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: Colors.grey[400], // Lighter color for Register
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              child: Text(
+                'Register',
+                style: TextStyle(fontSize: 18),
+              ),
             ),
           ],
         ),

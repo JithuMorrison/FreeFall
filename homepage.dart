@@ -1,10 +1,13 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:freefall/Contacts.dart';
 import 'package:freefall/dashboard.dart';
 import 'package:freefall/nearbyhospitals.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:freefall/profile.dart';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'common.dart';
 
 class HomePage extends StatefulWidget {
@@ -14,12 +17,47 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _currentIndex = 0;  // Track the current index
+  int _currentIndex = 0; // Track the current index
+  String classificationResult = "No result yet";  // Variable to store the API response
+
+  // Initialize local notifications plugin
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
     super.initState();
     _getCurrentLocation();
+    initializeNotifications();
+    // Set a timer to call the function every minute
+    Timer.periodic(Duration(seconds: 10), (timer) {
+      sendSensorData('j');  // Pass the sensor data accordingly (replace with real data)
+    });
+  }
+
+  // Function to initialize local notifications
+  Future<void> initializeNotifications() async {
+    final androidInitialization = AndroidInitializationSettings('@mipmap/ic_launcher');
+    final initializationSettings = InitializationSettings(android: androidInitialization);
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
+
+  // Function to show notifications
+  Future<void> showNotification(String message) async {
+    const androidDetails = AndroidNotificationDetails(
+      'alarm_channel',
+      'Alarm Notifications',
+      channelDescription: 'This channel is used for alarm notifications.',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+    const notificationDetails = NotificationDetails(android: androidDetails);
+
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'Fall Detection',
+      message,
+      notificationDetails,
+    );
   }
 
   // Function to get the current location
@@ -53,45 +91,50 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  // Variable to store the API response
-  String classificationResult = "No result yet";
-
-  Future<void> sendSensorData(double x, double y, double z) async {
+  Future<void> sendSensorData(String username) async {
     const apiUrl = 'http://127.0.0.1:5000/classify'; // Update with your API URL
 
     try {
-      /*final response = await http.post(
+      final response = await http.post(
         Uri.parse(apiUrl),
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({'x': x, 'y': y, 'z': z}),
+        body: jsonEncode({'username': username}),
       );
 
       if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);*/
-      setState(() {
-        //classificationResult = responseData['status'];
-        if(HomePage.hasFallen){
-          classificationResult = 'fall';
-          if (classificationResult == 'fall' && Common.currentPosition != null) {
-            // Send the current location with the fall state
-            final latitude = Common.currentPosition!.latitude;
-            final longitude = Common.currentPosition!.longitude;
-            Navigator.push(context, MaterialPageRoute(builder: (context)=>NearbyHospitalsWidget(latitude: latitude, longitude: longitude)));
+        final responseData = jsonDecode(response.body);
+        setState(() {
+          // Check for fall result in response
+          if (HomePage.hasFallen) {
+            classificationResult = 'fall';
+            if (classificationResult == 'fall' && Common.currentPosition != null) {
+              // Send the current location with the fall state
+              final latitude = Common.currentPosition!.latitude;
+              final longitude = Common.currentPosition!.longitude;
+              showNotification('Person fell');
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NearbyHospitalsWidget(latitude: latitude, longitude: longitude)),
+              );
+            }
+          } else {
+            classificationResult = 'Stand';
           }
-        }
-        else{
-          classificationResult = 'Stand';
-        }
-      });
-      /*} else {
+        });
+      } else {
         setState(() {
           classificationResult = "Error: ${response.body}";
         });
-      }*/
+      }
     } catch (e) {
       setState(() {
         classificationResult = "Error: $e";
       });
+    }
+
+    // If fall is not detected, send a notification
+    if (classificationResult != 'fall') {
+      showNotification('Fall detection has failed, please check the device.');
     }
   }
 
@@ -150,9 +193,9 @@ class _HomePageState extends State<HomePage> {
               title: Text('Dashboard'),
               onTap: () {
                 setState(() {
-                  _currentIndex = 0;  // Change the page to Profile
+                  _currentIndex = 0; // Change the page to Dashboard
                 });
-                Navigator.pop(context);  // Close the drawer
+                Navigator.pop(context); // Close the drawer
               },
             ),
             ListTile(
@@ -160,9 +203,9 @@ class _HomePageState extends State<HomePage> {
               title: Text('Profile'),
               onTap: () {
                 setState(() {
-                  _currentIndex = 1;  // Change the page to Profile
+                  _currentIndex = 1; // Change the page to Profile
                 });
-                Navigator.pop(context);  // Close the drawer
+                Navigator.pop(context); // Close the drawer
               },
             ),
             ListTile(
@@ -170,9 +213,9 @@ class _HomePageState extends State<HomePage> {
               title: Text('Notifications'),
               onTap: () {
                 setState(() {
-                  _currentIndex = 2;  // Change the page to Notifications
+                  _currentIndex = 2; // Change the page to Notifications
                 });
-                Navigator.pop(context);  // Close the drawer
+                Navigator.pop(context); // Close the drawer
               },
             ),
             ListTile(
@@ -180,16 +223,16 @@ class _HomePageState extends State<HomePage> {
               title: Text('Tracker'),
               onTap: () {
                 setState(() {
-                  _currentIndex = 3;  // Change the page to Tracker
+                  _currentIndex = 3; // Change the page to Tracker
                 });
-                Navigator.pop(context);  // Close the drawer
+                Navigator.pop(context); // Close the drawer
               },
             ),
           ],
         ),
       ),
       body: SafeArea(
-        child: _getPage(_currentIndex),  // Display the page based on current index
+        child: _getPage(_currentIndex), // Display the page based on current index
       ),
     );
   }
